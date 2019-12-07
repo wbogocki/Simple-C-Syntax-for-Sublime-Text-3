@@ -97,7 +97,7 @@ contexts:
     # Float literals (hexadecimal) (DONE)
     - match: \b0(x|X)[0-9a-fA-F]*\.?[0-9a-fA-F]*(?<=[0-9a-fA-F\.])((e|E|p|P)[0-9a-fA-F]+)?(f|F|l|L)?\b
       scope: constant.numeric.float
-    
+
     # String literals (DONE)
     #   Uncomment the commented out sections below if you want colouring within the string
     - match: \"
@@ -130,6 +130,10 @@ contexts:
         - match: \'
           pop: true
         - meta_scope: string.quoted.single
+
+    # String & character literal prefixes (DONE)
+    - match: \b(L|u8|u|U)\b\s*(?=(\'|\"))
+      scope: storage.type
 
     # Control (DONE)
     - match: \b({{control}})\b
