@@ -1,8 +1,8 @@
 %YAML 1.2
 ---
-# Author:     Wojciech Bogócki
-# Date:       Dec 7 2019
-# Repository: https://github.com/wbogocki/Simple-C-Syntax-for-Sublime-Text-3 
+# Author:       Wojciech Bogócki
+# Date:         Dec 7 2019
+# Repository:   https://github.com/wbogocki/Simple-C-Syntax-for-Sublime-Text-3 
 name: Simple C
 file_extensions: [c, h]
 scope: source.c
@@ -20,43 +20,55 @@ variables:
   modifiers: 'const|auto|static|inline|extern|register|restrict|volatile|_Complex|complex|_Imaginary|imaginary|_Atomic|_Thread_local|thread_local|_Noreturn|noreturn'
 
 contexts:
-  # We are inside of something, goooooood! Now I can safely colour functions! Ha!
-  #   Uncomment the functions part below and remove the [] if you want your function invocations
-  #   to be coloured. I don't.
-  local-scope:
-    # # Functions (DONE)
-    # #   When it comes to functions there is no good way to differentiate between declarations
-    # #   and calls (that I know right now). So we just pretend like everything is nice by doing
-    # #   this.
-    # - match: \b({{identifiers}})\s*(?=\()
-    #   scope: variable.function
-    []
 
-  main:
+  # We are in the global scope, any function-like thing here must be a declaration! Yay!
+  global-scope:
+    # Function declarations (DONE)
+    - match: \b({{identifiers}})\s*(?=\()
+      scope: entity.name.function
+      
+  # We are inside of something, goooooood! Now I can safely colour function calls! Ha!
+  local-scope:
+    # Function calls (DONE)
+    - match: \b({{identifiers}})\s*(?=\()
+      scope: variable.function
+
+  basic:
     # Macros: include (DONE)
-    - match: (^\s*#\s*\binclude\b)\s*((\<.*\>)|(\".*\"))
+    - match: ^\s*(#\s*include)\s*(\<.*\>)|(\".*\")$
       captures:
         1: keyword.other
         2: string.quoted.other
 
+    # Macros: define (DONE)
+    - match: ^\s*(#\s*define)\s*\b({{identifiers}})\b
+      captures:
+        1: keyword.other
+        2: entity.name.macro
+      push:
+        - match: (?<!\\)\n
+          pop: true
+        - include: basic
+        - include: local-scope
+
     # Macros: if/ifdef/ifndef (DONE)
-    - match: (^\s*#\s*\b(if|ifdef|ifndef)\b)
+    - match: ^\s*#\s*\b(if|ifdef|ifndef)\b
       scope: keyword.other
       push:
         - match: \bdefined\b
           scope: keyword.other
         - match: (?<!\\)\n
           pop: true
-        - include: main
+        - include: basic
         - include: local-scope
 
     # Macros: other (DONE)
-    - match: (^\s*#\s*\b(define|undef|else|elif|endif|line|error|pragma)\b)
+    - match: ^\s*#\s*\b(undef|else|elif|endif|line|error|pragma)\b
       scope: keyword.other
       push:
         - match: (?<!\\)\n
           pop: true
-        - include: main
+        - include: basic
         - include: local-scope
 
     # Block comments (DONE)
@@ -164,7 +176,7 @@ contexts:
       push:
         - match: \)
           pop: true
-        - include: main
+        - include: basic
         - include: local-scope
 
     - match: \)
@@ -175,8 +187,12 @@ contexts:
       push:
         - match: \}
           pop: true
-        - include: main
+        - include: basic
         - include: local-scope
 
     - match: \}
       scope: invalid.illegal
+
+  main:
+    - include: basic
+    - include: global-scope
