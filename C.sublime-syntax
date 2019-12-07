@@ -1,0 +1,178 @@
+%YAML 1.2
+---
+# Author:     Wojciech Bogócki
+# Date:       Dec 7 2019
+# Repository: https://github.com/wbogocki/Simple-C-Syntax-for-Sublime-Text-3 
+name: Simple C
+file_extensions: [c, h]
+scope: source.c
+variables:
+  identifiers: '[A-Za-z_][A-Za-z_0-9]*'
+  integer_literal_suffixes: 'u|U|l|L|ll|LL'
+  builtin_constants: 'NULL|true|false|__func__'
+  builtin_macros: '__STDC__|__STDC_VERSION__|__STDC_HOSTED__|__FILE__|__LINE__|__DATE__|__TIME__|__STDC_ISO_10646__|__STDC_IEC_559__|__STDC_IEC_559_COMPLEX__|__STDC_UTF_16__|__STDC_UTF_32__|__STDC_MB_MIGHT_NEQ_WC__|__STDC_ANALYZABLE__|__STDC_LIB_EXT1__|__STDC_NO_ATOMICS__|__STDC_NO_COMPLEX__|__STDC_NO_THREADS__|__STDC_NO_VLA__|__VA_ARG__'
+  control: 'if|else|for|while|do|switch|goto|break|continue|case|default|return'
+  operators: '\=|\+|\-|\*|\/|\%|\^|\!|~|\&|\%|\||\.|\<|\>|\?'
+  types: 'int|short|long|float|double|char|_Bool|bool|signed|unsigned|size_t|ptrdiff_t'
+  types_stdint: 'int8_t|int16_t|int32_t|int64_t|int_fast8_t|int_fast16_t|int_fast32_t|int_fast64_t|int_least8_t|int_least16_t|int_least32_t|int_least64_t|intmax_t|intptr_t|uint8_t|uint16_t|uint32_t|uint64_t|uint_fast8_t|uint_fast16_t|uint_fast32_t|uint_fast64_t|uint_least8_t|uint_least16_t|uint_least32_t|uint_least64_t|uintmax_t|uintmax_t'
+  types_struct: 'struct|enum|union'
+  types_my: 'i8|i16|i32|i64|u8|u16|u32|u64'
+  modifiers: 'const|auto|static|inline|extern|register|restrict|volatile|_Complex|complex|_Imaginary|imaginary|_Atomic|_Thread_local|thread_local|_Noreturn|noreturn'
+
+contexts:
+  # We are inside of something, goooooood! Now I can safely colour functions! Ha!
+  #   Uncomment the functions part below and remove the [] if you want your function invocations
+  #   to be coloured. I don't.
+  local-scope:
+    # # Functions (DONE)
+    # #   When it comes to functions there is no good way to differentiate between declarations
+    # #   and calls (that I know right now). So we just pretend like everything is nice by doing
+    # #   this.
+    # - match: \b({{identifiers}})\s*(?=\()
+    #   scope: variable.function
+    []
+
+  main:
+    # Macros: include (DONE)
+    - match: (^\s*#\s*\binclude\b)\s*((\<.*\>)|(\".*\"))
+      captures:
+        1: keyword.other
+        2: string.quoted.other
+
+    # Macros: if/ifdef/ifndef (DONE)
+    - match: (^\s*#\s*\b(if|ifdef|ifndef)\b)
+      scope: keyword.other
+      push:
+        - match: \bdefined\b
+          scope: keyword.other
+        - match: (?<!\\)\n
+          pop: true
+        - include: main
+        - include: local-scope
+
+    # Macros: other (DONE)
+    - match: (^\s*#\s*\b(define|undef|else|elif|endif|line|error|pragma)\b)
+      scope: keyword.other
+      push:
+        - match: (?<!\\)\n
+          pop: true
+        - include: main
+        - include: local-scope
+
+    # Block comments (DONE)
+    - match: \/\*
+      push:
+        - match: \*\/
+          pop: true
+        - meta_scope: comment.block
+
+    # Line comments (DONE)
+    - match: //.*
+      scope: comment.line
+
+    # Constants & macros (DONE)
+    - match: \b({{builtin_constants}}|{{builtin_macros}})\b
+      scope: constant.language
+
+    # Integer literals (decimal) (DONE)
+    - match: \b[1-9][0-9]*({{integer_literal_suffixes}})?\b
+      scope: constant.numeric.integer
+
+    # Integer literals (hexadecimal) (DONE)
+    - match: \b0(x|X)[0-9a-fA-F]+({{integer_literal_suffixes}})?\b
+      scope: constant.numeric.integer
+
+    # Integer literals (binary) (DONE)
+    - match: \b0(b|B)[0-1]+({{integer_literal_suffixes}})?\b
+      scope: constant.numeric.integer
+
+    # Integer literals (octal) (DONE)
+    - match: \b0[0-7]*({{integer_literal_suffixes}})?\b
+      scope: constant.numeric.integer
+
+    # Float literals (decimal) (DONE)
+    - match: \b[0-9]*\.?[0-9]*(?<=[0-9\.])((e|E|p|P)[0-9]+)?(f|F|l|L)?\b
+      scope: constant.numeric.float
+
+    # Float literals (hexadecimal) (DONE)
+    - match: \b0(x|X)[0-9a-fA-F]*\.?[0-9a-fA-F]*(?<=[0-9a-fA-F\.])((e|E|p|P)[0-9a-fA-F]+)?(f|F|l|L)?\b
+      scope: constant.numeric.float
+    
+    # String literals (DONE)
+    #   Uncomment the commented out sections below if you want colouring within the string
+    - match: \"
+      push:
+        # - match: \\(?:\\|[abefnrtv\'"?]|[0-3][0-9]{0,2}|[4-7][0-9]?|x[a-fA-F0-9]+|u[a-fA-F0-9]{4}|U[a-fA-F0-9]{8})
+        #   scope: constant.character.escape
+        # - match: \\.
+        #   scope: invalid.illegal
+
+        # - match: |-
+        #     (?x)%
+        #     (\d+\$)?                                      # field (argument #)
+        #     [#0\- +']*                                    # flags
+        #     [,;:_]?                                       # separator character (AltiVec)
+        #     ((-?\d+)|\*(-?\d+\$)?)?                       # minimum field width
+        #     (\.((-?\d+)|\*(-?\d+\$)?)?)?                  # precision
+        #     (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)?          # length modifier
+        #     (\[[^\]]+\]|[am]s|[diouxXDOUeEfFgGaACcSspn%]) # conversion type
+        #  scope: constant.other.placeholder
+
+        - match: \"
+          pop: true
+        - meta_scope: string.quoted.double
+    
+    # Character literals (DONE)
+    - match: \'
+      push:
+        - match: \\.
+          scope: constant.character.escape
+        - match: \'
+          pop: true
+        - meta_scope: string.quoted.single
+
+    # Control (DONE)
+    - match: \b({{control}})\b
+      scope: keyword.control
+
+    # Operators (DONE)
+    - match: ({{operators}})
+      scope: keyword.operator
+
+    # Sizeof operator (DONE)
+    - match: \bsizeof\b
+      scope: keyword.operator.word
+
+    # Typedef operator (DONE)
+    - match: \btypedef\b
+      scope: keyword.operator.word
+
+    # Types (DONE)
+    - match: \b({{types}}|{{types_stdint}}|{{types_struct}}|{{types_my}})\b
+      scope: storage.type
+    
+    # Modifiers (DONE)
+    - match: \b({{modifiers}})\b
+      scope: storage.modifier
+
+    # Brackets (DONE)
+    - match: \(
+      push:
+        - match: \)
+          pop: true
+        - include: main
+        - include: local-scope
+
+    - match: \)
+      scope: invalid.illegal
+
+    # Scopes (DONE)
+    - match: \{
+      push:
+        - match: \}
+          pop: true
+        - include: main
+        - include: local-scope
+
+    - match: \}
+      scope: invalid.illegal
