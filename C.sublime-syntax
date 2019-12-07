@@ -13,7 +13,7 @@ variables:
   builtin_macros: '__STDC__|__STDC_VERSION__|__STDC_HOSTED__|__FILE__|__LINE__|__DATE__|__TIME__|__STDC_ISO_10646__|__STDC_IEC_559__|__STDC_IEC_559_COMPLEX__|__STDC_UTF_16__|__STDC_UTF_32__|__STDC_MB_MIGHT_NEQ_WC__|__STDC_ANALYZABLE__|__STDC_LIB_EXT1__|__STDC_NO_ATOMICS__|__STDC_NO_COMPLEX__|__STDC_NO_THREADS__|__STDC_NO_VLA__|__VA_ARG__'
   control: 'if|else|for|while|do|switch|goto|break|continue|case|default|return'
   operators: '\=|\+|\-|\*|\/|\%|\^|\!|~|\&|\%|\||\.|\<|\>|\?'
-  types: 'int|short|long|float|double|char|_Bool|bool|signed|unsigned|size_t|ptrdiff_t'
+  types: 'void|int|short|long|float|double|char|_Bool|bool|signed|unsigned|size_t|ptrdiff_t'
   types_stdint: 'int8_t|int16_t|int32_t|int64_t|int_fast8_t|int_fast16_t|int_fast32_t|int_fast64_t|int_least8_t|int_least16_t|int_least32_t|int_least64_t|intmax_t|intptr_t|uint8_t|uint16_t|uint32_t|uint64_t|uint_fast8_t|uint_fast16_t|uint_fast32_t|uint_fast64_t|uint_least8_t|uint_least16_t|uint_least32_t|uint_least64_t|uintmax_t|uintmax_t'
   types_struct: 'struct|enum|union'
   types_my: 'i8|i16|i32|i64|u8|u16|u32|u64'
@@ -116,7 +116,7 @@ contexts:
         #     (\.((-?\d+)|\*(-?\d+\$)?)?)?                  # precision
         #     (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)?          # length modifier
         #     (\[[^\]]+\]|[am]s|[diouxXDOUeEfFgGaACcSspn%]) # conversion type
-        #  scope: constant.other.placeholder
+        #   scope: constant.other.placeholder
 
         - match: \"
           pop: true
