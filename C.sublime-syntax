@@ -16,26 +16,26 @@ variables:
   types: 'void|int|short|long|float|double|char|_Bool|bool|signed|unsigned|size_t|ptrdiff_t'
   types_stdint: 'int8_t|int16_t|int32_t|int64_t|int_fast8_t|int_fast16_t|int_fast32_t|int_fast64_t|int_least8_t|int_least16_t|int_least32_t|int_least64_t|intmax_t|intptr_t|uint8_t|uint16_t|uint32_t|uint64_t|uint_fast8_t|uint_fast16_t|uint_fast32_t|uint_fast64_t|uint_least8_t|uint_least16_t|uint_least32_t|uint_least64_t|uintmax_t|uintmax_t'
   types_struct: 'struct|enum|union'
-  types_my: 'i8|i16|i32|i64|u8|u16|u32|u64'
+  types_my: 'i8|i16|i32|i64|isz|u8|u16|u32|u64|usz'
   modifiers: 'const|auto|static|inline|extern|register|restrict|volatile|_Complex|complex|_Imaginary|imaginary|_Atomic|_Thread_local|thread_local|_Noreturn|noreturn'
 
 contexts:
 
   # We are in the global scope, any function-like thing here must be a declaration! Yay!
-  global-scope:
+  global_scope:
     # Function declarations (DONE)
     - match: \b({{identifiers}})\s*(?=\()
       scope: entity.name.function
       
   # We are inside of something, goooooood! Now I can safely colour function calls! Ha!
-  local-scope:
+  local_scope:
     # Function calls (DONE)
     - match: \b({{identifiers}})\s*(?=\()
       scope: variable.function
 
   basic:
     # Macros: include (DONE)
-    - match: ^\s*(#\s*include)\s*(\<.*\>)|(\".*\")$
+    - match: ^\s*(#\s*include)\s*((\<.*\>)|(\".*\"))$
       captures:
         1: keyword.other
         2: string.quoted.other
@@ -49,7 +49,7 @@ contexts:
         - match: (?<!\\)\n
           pop: true
         - include: basic
-        - include: local-scope
+        - include: local_scope
 
     # Macros: if/ifdef/ifndef (DONE)
     - match: ^\s*#\s*\b(if|ifdef|ifndef)\b
@@ -60,7 +60,7 @@ contexts:
         - match: (?<!\\)\n
           pop: true
         - include: basic
-        - include: local-scope
+        - include: local_scope
 
     # Macros: other (DONE)
     - match: ^\s*#\s*\b(undef|else|elif|endif|line|error|pragma)\b
@@ -69,7 +69,7 @@ contexts:
         - match: (?<!\\)\n
           pop: true
         - include: basic
-        - include: local-scope
+        - include: local_scope
 
     # Block comments (DONE)
     - match: \/\*
@@ -86,29 +86,63 @@ contexts:
     - match: \b({{builtin_constants}}|{{builtin_macros}})\b
       scope: constant.language
 
-    # Integer literals (decimal) (DONE)
-    - match: \b[1-9][0-9]*({{integer_literal_suffixes}})?\b
-      scope: constant.numeric.integer
+    # # Integer literals (decimal) (DONE)
+    # - match: \b[1-9][0-9]*({{integer_literal_suffixes}})?\b
+    #   scope: constant.numeric.integer
 
-    # Integer literals (hexadecimal) (DONE)
-    - match: \b0(x|X)[0-9a-fA-F]+({{integer_literal_suffixes}})?\b
-      scope: constant.numeric.integer
+    # # Integer literals (hexadecimal) (DONE)
+    # - match: \b0(x|X)[0-9a-fA-F]+({{integer_literal_suffixes}})?\b
+    #   scope: constant.numeric.integer
 
-    # Integer literals (binary) (DONE)
-    - match: \b0(b|B)[0-1]+({{integer_literal_suffixes}})?\b
-      scope: constant.numeric.integer
+    # # Integer literals (binary) (DONE)
+    # - match: \b0(b|B)[0-1]+({{integer_literal_suffixes}})?\b
+    #   scope: constant.numeric.integer
 
-    # Integer literals (octal) (DONE)
-    - match: \b0[0-7]*({{integer_literal_suffixes}})?\b
-      scope: constant.numeric.integer
+    # # Integer literals (octal) (DONE)
+    # - match: \b0[0-7]*({{integer_literal_suffixes}})?\b
+    #   scope: constant.numeric.integer
 
-    # Float literals (decimal) (DONE)
-    - match: \b[0-9]*\.?[0-9]*(?<=[0-9\.])((e|E|p|P)[0-9]+)?(f|F|l|L)?\b
-      scope: constant.numeric.float
+    # # Float literals (decimal) (DONE)
+    # - match: \b[0-9]*\((?<=[0-9\.]).(?<=[0-9\.]))[0-9]*((e|E|p|P)[0-9]+)?(f|F|l|L)?\b
+    #   scope: constant.numeric.float
 
-    # Float literals (hexadecimal) (DONE)
-    - match: \b0(x|X)[0-9a-fA-F]*\.?[0-9a-fA-F]*(?<=[0-9a-fA-F\.])((e|E|p|P)[0-9a-fA-F]+)?(f|F|l|L)?\b
-      scope: constant.numeric.float
+    # # Float literals (hexadecimal) (DONE)
+    # - match: \b0(x|X)[0-9a-fA-F]*\.?[0-9a-fA-F]*(?<=[0-9a-fA-F\.])((e|E|p|P)[0-9a-fA-F]+)?(f|F|l|L)?\b
+    #   scope: constant.numeric.float
+
+    # Number literals; stolen from the official C++ syntax
+    - match: |-
+        (?x)
+        (?:
+        # floats
+          (?:
+          (?:\b\d(?:[\d']*\d)?\.\d(?:[\d']*\d)?|\B\.\d(?:[\d']*\d)?)(?:[Ee][+-]?\d(?:[\d']*\d)?)?(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b
+          |
+          (?:\b\d(?:[\d']*\d)?\.)(?:\B|(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))\b|(?:[Ee][+-]?\d(?:[\d']*\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b)
+          |
+          \b\d(?:[\d']*\d)?(?:[Ee][+-]?\d(?:[\d']*\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b
+          )
+        |
+        # ints
+          \b(?:
+          (?:
+          # dec
+          [1-9](?:[\d']*\d)?
+          |
+          # oct
+          0(?:[0-7']*[0-7])?
+          |
+          # hex
+          0[Xx][\da-fA-F](?:[\da-fA-F']*[\da-fA-F])?
+          |
+          # bin
+          0[Bb][01](?:[01']*[01])?
+          )
+          # int suffixes
+          (?:(?:l{1,2}|L{1,2})[uU]?|[uU](?:l{0,2}|L{0,2})|(?:i[fl]?|h|min|[mun]?s|_\w*))?)\b
+        )
+        (?!\.)
+      scope: constant.numeric
 
     # String literals (DONE)
     #   Uncomment the commented out sections below if you want colouring within the string
@@ -161,7 +195,7 @@ contexts:
 
     # Typedef operator (DONE)
     - match: \btypedef\b
-      scope: keyword.operator.word
+      scope: storage.type
 
     # Types (DONE)
     - match: \b({{types}}|{{types_stdint}}|{{types_struct}}|{{types_my}})\b
@@ -177,7 +211,7 @@ contexts:
         - match: \)
           pop: true
         - include: basic
-        - include: local-scope
+        - include: local_scope
 
     - match: \)
       scope: invalid.illegal
@@ -188,11 +222,11 @@ contexts:
         - match: \}
           pop: true
         - include: basic
-        - include: local-scope
+        - include: local_scope
 
     - match: \}
       scope: invalid.illegal
 
   main:
     - include: basic
-    - include: global-scope
+    - include: global_scope
