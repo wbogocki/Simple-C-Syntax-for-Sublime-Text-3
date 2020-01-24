@@ -164,7 +164,7 @@ contexts:
         #     (\[[^\]]+\]|[am]s|[diouxXDOUeEfFgGaACcSspn%]) # conversion type
         #   scope: constant.other.placeholder
 
-        - match: \"
+        - match: (?<!\\)\"
           pop: true
         - meta_scope: string.quoted.double
     
