@@ -5,16 +5,14 @@ Merry Christmas!
 ## What?
 
 1. Is simple
-2. Is short & modifiable (~150 lines)
-3. Is basic
-4. Is bugless (as much as possible and not sure about float literals)
-5. Is done in one day and only lightly tested
-6. Is not the >1000 lines monstrosity that ships with Sublime that can't even properly colour C
+2. Is short & modifiable
+3. Is limited to the part of C that is possible to correctly implement in Sublime
+4. Is bug-free
+> Enough to not make me angry - unlike Sublime's implementation 💢💢💢
+5. Is not the >1000 lines monstrosity that ships with Sublime and can't even colour C
 
 ## Why?
 
 1. Sublime's built-in C syntax is bugged
-2. Sublime's syntax colouring mechanism is really bad
-> Wishes to Santa: Please replace it with a loadable script or DLL so I can arbitrarily colour my files!
-3. Sublime's rest is really good
-
+2. Sublime's syntax colouring mechanism is insufficient to implement C
+> Wishes to Sublime Santa: Please make it possible to arbitraily parse and colour text!
