@@ -3,7 +3,7 @@
 # Author:       Wojciech Bogócki
 # Date:         Dec 7 2019
 # Repository:   https://github.com/wbogocki/Simple-C-Syntax-for-Sublime-Text-3 
-name: Simple C
+name: C (Simple)
 file_extensions: [c, h]
 scope: source.c
 variables:
@@ -18,29 +18,27 @@ variables:
   types_struct: 'struct|enum|union'
   types_my: 'i8|i16|i32|i64|isz|u8|u16|u32|u64|usz'
   modifiers: 'const|auto|static|inline|extern|register|restrict|volatile|_Complex|complex|_Imaginary|imaginary|_Atomic|_Thread_local|thread_local|_Noreturn|noreturn'
-
 contexts:
-
   # We are in the global scope, any function-like thing here must be a declaration! Yay!
   global_scope:
-    # Function declarations (DONE)
+    # Function declarations
     - match: \b({{identifiers}})\s*(?=\()
       scope: entity.name.function
       
   # We are inside of something, goooooood! Now I can safely colour function calls! Ha!
   local_scope:
-    # Function calls (DONE)
+    # Function calls
     - match: \b({{identifiers}})\s*(?=\()
-      scope: variable.function
+      scope: entity.name.function meta.function-call support.function
 
   basic:
-    # Macros: include (DONE)
+    # Macros: include
     - match: ^\s*(#\s*include)\s*((\<.*\>)|(\".*\"))$
       captures:
         1: keyword.other
         2: string.quoted.other
 
-    # Macros: define (DONE)
+    # Macros: define
     - match: ^\s*(#\s*define)\s*\b({{identifiers}})\b
       captures:
         1: keyword.other
@@ -51,7 +49,7 @@ contexts:
         - include: basic
         - include: local_scope
 
-    # Macros: if/ifdef/ifndef (DONE)
+    # Macros: if/ifdef/ifndef
     - match: ^\s*#\s*\b(if|ifdef|ifndef)\b
       scope: keyword.other
       push:
@@ -62,7 +60,7 @@ contexts:
         - include: basic
         - include: local_scope
 
-    # Macros: other (DONE)
+    # Macros: other
     - match: ^\s*#\s*\b(undef|else|elif|endif|line|error|pragma)\b
       scope: keyword.other
       push:
@@ -71,104 +69,65 @@ contexts:
         - include: basic
         - include: local_scope
 
-    # Block comments (DONE)
+    # Block comments
     - match: \/\*
       push:
         - match: \*\/
           pop: true
         - meta_scope: comment.block
 
-    # Line comments (DONE)
+    # Line comments
     - match: //.*
       scope: comment.line
 
-    # Constants & macros (DONE)
+    # Constants & macros
     - match: \b({{builtin_constants}}|{{builtin_macros}})\b
       scope: constant.language
 
-    # # Integer literals (decimal) (DONE)
-    # - match: \b[1-9][0-9]*({{integer_literal_suffixes}})?\b
-    #   scope: constant.numeric.integer
+    # Float literals: decimal
+    - match: (?i)((\b[1-9][0-9]*)?\.?((?<=.)[0-9]+)?)(?<=[0-9.])(e[0-9]+)?(l|f)?\b
+      scope: constant.numeric.float
 
-    # # Integer literals (hexadecimal) (DONE)
-    # - match: \b0(x|X)[0-9a-fA-F]+({{integer_literal_suffixes}})?\b
-    #   scope: constant.numeric.integer
+    # Float literals: hexadecimal
+    - match: (?i)((\b0x[0-9A-F]+)?\.?((?<=.)[0-9A-F]+)?)(?<=[0-9A-F.])(p[0-9A-F]+)?(l|f)?\b
+      scope: constant.numeric.float
 
-    # # Integer literals (binary) (DONE)
-    # - match: \b0(b|B)[0-1]+({{integer_literal_suffixes}})?\b
-    #   scope: constant.numeric.integer
+    # Int literals: decimal
+    - match: (?i)\b[1-9][0-9]*u?(l|ll)?\b
+      scope: constant.numeric.integer
 
-    # # Integer literals (octal) (DONE)
-    # - match: \b0[0-7]*({{integer_literal_suffixes}})?\b
-    #   scope: constant.numeric.integer
+    # Int literals: octal
+    - match: (?i)\b0[0-7]*u?(l|ll)?\b
+      scope: constant.numeric.integer
 
-    # # Float literals (decimal) (DONE)
-    # - match: \b[0-9]*\((?<=[0-9\.]).(?<=[0-9\.]))[0-9]*((e|E|p|P)[0-9]+)?(f|F|l|L)?\b
-    #   scope: constant.numeric.float
+    # Int literals: hexadecimal
+    - match: (?i)\b0x[0-9A-F]+u?(l|ll)?\b
+      scope: constant.numeric.integer
 
-    # # Float literals (hexadecimal) (DONE)
-    # - match: \b0(x|X)[0-9a-fA-F]*\.?[0-9a-fA-F]*(?<=[0-9a-fA-F\.])((e|E|p|P)[0-9a-fA-F]+)?(f|F|l|L)?\b
-    #   scope: constant.numeric.float
-
-    # Number literals; stolen from the official C++ syntax
-    - match: |-
-        (?x)
-        (?:
-        # floats
-          (?:
-          (?:\b\d(?:[\d']*\d)?\.\d(?:[\d']*\d)?|\B\.\d(?:[\d']*\d)?)(?:[Ee][+-]?\d(?:[\d']*\d)?)?(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b
-          |
-          (?:\b\d(?:[\d']*\d)?\.)(?:\B|(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))\b|(?:[Ee][+-]?\d(?:[\d']*\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b)
-          |
-          \b\d(?:[\d']*\d)?(?:[Ee][+-]?\d(?:[\d']*\d)?)(?:[fFlL]|(?:i[fl]?|h|min|[mun]?s|_\w*))?\b
-          )
-        |
-        # ints
-          \b(?:
-          (?:
-          # dec
-          [1-9](?:[\d']*\d)?
-          |
-          # oct
-          0(?:[0-7']*[0-7])?
-          |
-          # hex
-          0[Xx][\da-fA-F](?:[\da-fA-F']*[\da-fA-F])?
-          |
-          # bin
-          0[Bb][01](?:[01']*[01])?
-          )
-          # int suffixes
-          (?:(?:l{1,2}|L{1,2})[uU]?|[uU](?:l{0,2}|L{0,2})|(?:i[fl]?|h|min|[mun]?s|_\w*))?)\b
-        )
-        (?!\.)
-      scope: constant.numeric
-
-    # String literals (DONE)
-    #   Uncomment the commented out sections below if you want colouring within the string
+    # String literals
     - match: \"
       push:
-        # - match: \\(?:\\|[abefnrtv\'"?]|[0-3][0-9]{0,2}|[4-7][0-9]?|x[a-fA-F0-9]+|u[a-fA-F0-9]{4}|U[a-fA-F0-9]{8})
-        #   scope: constant.character.escape
-        # - match: \\.
-        #   scope: invalid.illegal
+        - match: \\(?:\\|[abefnrtv\'"?]|[0-3][0-9]{0,2}|[4-7][0-9]?|x[a-fA-F0-9]+|u[a-fA-F0-9]{4}|U[a-fA-F0-9]{8})
+          scope: constant.character.escape
+        - match: \\.
+          scope: invalid.illegal
 
-        # - match: |-
-        #     (?x)%
-        #     (\d+\$)?                                      # field (argument #)
-        #     [#0\- +']*                                    # flags
-        #     [,;:_]?                                       # separator character (AltiVec)
-        #     ((-?\d+)|\*(-?\d+\$)?)?                       # minimum field width
-        #     (\.((-?\d+)|\*(-?\d+\$)?)?)?                  # precision
-        #     (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)?          # length modifier
-        #     (\[[^\]]+\]|[am]s|[diouxXDOUeEfFgGaACcSspn%]) # conversion type
-        #   scope: constant.other.placeholder
+        - match: |-
+            (?x)%
+            (\d+\$)?                                      # field (argument #)
+            [#0\- +']*                                    # flags
+            [,;:_]?                                       # separator character (AltiVec)
+            ((-?\d+)|\*(-?\d+\$)?)?                       # minimum field width
+            (\.((-?\d+)|\*(-?\d+\$)?)?)?                  # precision
+            (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)?          # length modifier
+            (\[[^\]]+\]|[am]s|[diouxXDOUeEfFgGaACcSspn%]) # conversion type
+          scope: constant.other.placeholder
 
         - match: (?<!\\)\"
           pop: true
         - meta_scope: string.quoted.double
     
-    # Character literals (DONE)
+    # Character literals
     - match: \'
       push:
         - match: \\.
@@ -177,35 +136,35 @@ contexts:
           pop: true
         - meta_scope: string.quoted.single
 
-    # String & character literal prefixes (DONE)
+    # String & character literal prefixes
     - match: \b(L|u8|u|U)\b\s*(?=(\'|\"))
       scope: storage.type
 
-    # Control (DONE)
+    # Control
     - match: \b({{control}})\b
       scope: keyword.control
 
-    # Operators (DONE)
+    # Operators
     - match: ({{operators}})
       scope: keyword.operator
 
-    # Sizeof operator (DONE)
+    # Sizeof operator
     - match: \bsizeof\b
       scope: keyword.operator.word
 
-    # Typedef operator (DONE)
+    # Typedef operator
     - match: \btypedef\b
       scope: storage.type
 
-    # Types (DONE)
+    # Types
     - match: \b({{types}}|{{types_stdint}}|{{types_struct}}|{{types_my}})\b
       scope: storage.type
     
-    # Modifiers (DONE)
+    # Modifiers
     - match: \b({{modifiers}})\b
       scope: storage.modifier
 
-    # Brackets (DONE)
+    # Brackets
     - match: \(
       push:
         - match: \)
@@ -216,7 +175,7 @@ contexts:
     - match: \)
       scope: invalid.illegal
 
-    # Scopes (DONE)
+    # Scopes
     - match: \{
       push:
         - match: \}
