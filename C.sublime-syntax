@@ -84,14 +84,6 @@ contexts:
     - match: \b({{builtin_constants}}|{{builtin_macros}})\b
       scope: constant.language
 
-    # Float literals: decimal
-    - match: (?i)((\b[1-9][0-9]*)?\.?((?<=.)[0-9]+)?)(?<=[0-9.])(e[0-9]+)?(l|f)?\b
-      scope: constant.numeric.float
-
-    # Float literals: hexadecimal
-    - match: (?i)((\b0x[0-9A-F]+)?\.?((?<=.)[0-9A-F]+)?)(?<=[0-9A-F.])(p[0-9A-F]+)?(l|f)?\b
-      scope: constant.numeric.float
-
     # Int literals: decimal
     - match: (?i)\b[1-9][0-9]*u?(l|ll)?\b
       scope: constant.numeric.integer
@@ -103,6 +95,14 @@ contexts:
     # Int literals: hexadecimal
     - match: (?i)\b0x[0-9A-F]+u?(l|ll)?\b
       scope: constant.numeric.integer
+
+    # Float literals: decimal
+    - match: (?i)[\b^\.]([1-9][0-9]*)?((?<=\.)[0-9]+)?((?<![\b^\.])e[0-9]+)?(l|f)?\b
+      scope: constant.numeric.float
+
+    # Float literals: hexadecimal
+    - match: (?i)[\b^\.](0x[0-9A-F]+)?((?<=\.)[0-9A-F]+)?((?<![\b^\.])p[0-9A-F]+)?(l|f)?\b
+      scope: constant.numeric.float
 
     # String literals
     - match: \"
